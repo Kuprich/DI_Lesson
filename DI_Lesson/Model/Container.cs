@@ -11,6 +11,7 @@ public class Container : IContainer
     private class Scope : IScope
     {
         private readonly Container _container;
+        private readonly ConcurrentDictionary<Type, object> _scopedInstances = new();
 
         public Scope(Container container)
         {
@@ -18,16 +19,37 @@ public class Container : IContainer
         }
         public object Resolve(Type service)
         {
-            return _container.CreateInstance(service, this);
+            var descriptor = _container.FindDescriptor(service);
+            if (descriptor == null)
+                throw new NullReferenceException($"{nameof(descriptor)} can not be null");
+
+            if (descriptor.LifeTime == LifeTime.Transient)
+                return _container.CreateInstance(service, this);
+
+            if (descriptor.LifeTime == LifeTime.Scoped || _container._rootScope == this)
+                return _scopedInstances.GetOrAdd(service, service => _container.CreateInstance(service, this));
+
+            return _container._rootScope.Resolve(service);
+           
         }
     }
 
+
+
     private ImmutableDictionary<Type, ServiceDescriptorBase> _descriptors;
     private ConcurrentDictionary<Type, Func<IScope, object>> _builtActivators = new();
+    private readonly IScope _rootScope;
+
+    private ServiceDescriptorBase? FindDescriptor(Type service)
+    {
+        _descriptors.TryGetValue(service, out var result);
+        return result;
+    }
 
     public Container(IEnumerable<ServiceDescriptorBase> descriptors)
     {
         _descriptors = descriptors.ToImmutableDictionary(x => x.ServiceType);
+        _rootScope = new Scope(this);
     }
     public IScope CreateScope()
     {
@@ -57,7 +79,7 @@ public class Container : IContainer
             {
                 parameters[i] = CreateInstance(args[i].ParameterType, scope);
             }
-            
+
             return ctor.Invoke(parameters);
         };
     }

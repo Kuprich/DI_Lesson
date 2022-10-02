@@ -10,7 +10,13 @@ IContainer container = builder
 
 
 IScope scope = container.CreateScope();
-var controller = scope.Resolve(typeof(Controller));
+var controller1 = scope.Resolve(typeof(Controller));
+var controller2 = scope.Resolve(typeof(Controller));
+
+if (controller1 != controller2)
+{
+	throw new InvalidOperationException();
+}
 
 Console.ReadKey();
 

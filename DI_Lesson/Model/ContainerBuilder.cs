@@ -5,13 +5,14 @@ namespace DI_Lesson.Model;
 
 public class ContainerBuilder : IContainerBuilder
 {
+	private readonly List<ServiceDescriptorBase> _descriptors = new();
 	public IContainer Build()
 	{
-		throw new NotImplementedException();
+		return new Container(_descriptors);
 	}
 
 	public void Register(ServiceDescriptorBase descriptor)
 	{
-		throw new NotImplementedException();
+		_descriptors.Add(descriptor);
 	}
 }

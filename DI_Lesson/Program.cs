@@ -2,30 +2,19 @@
 using DI_Lesson.Model;
 using DI_Lesson.Model.Interfaces;
 
-var reg = new Registration();
-var container = reg.ConfigureServices();
-container.Resolve<Controller>().Do();
-class Container : IContainer
-{
-	public IScope CreateScope()
-	{
-		throw new NotImplementedException();
-	}
-}
+IContainerBuilder builder = new ContainerBuilder();
+IContainer container = builder
+	.RegisterScoped<IService, Service>()
+	.RegisterScoped<Controller, Controller>()
+	.Build();
 
-class Registration
-{
-	public Container ConfigureServices()
-	{
-		var builder = new ContainerBuilder();
 
-		builder.RegisterSingleton<IService, Service>();
+IScope scope = container.CreateScope();
+var controller = scope.Resolve(typeof(Controller));
 
-		//builder.Register<IService, Service>();
-		//builder.Register<Controller, Controller>();
-		return builder.Build();
-	}
-}
+Console.ReadKey();
+
+
 
 class Controller
 {
@@ -41,12 +30,8 @@ class Controller
 	}
 }
 
-interface IService
-{
+interface IService { }
+class Service : IService { }
 
-}
-
-class Service : IService
-{
-
-}
+interface IHelper { }
+class Helper : IHelper { }

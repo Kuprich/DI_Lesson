@@ -1,4 +1,5 @@
-﻿using DI_Lesson.Model.Descriptors;
+﻿using DI_Lesson.Model.Builders;
+using DI_Lesson.Model.Descriptors;
 using DI_Lesson.Model.Interfaces;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -69,18 +70,21 @@ public class Container : IContainer
     private ImmutableDictionary<Type, ServiceDescriptorBase> _descriptors;
     private ConcurrentDictionary<Type, Func<IScope, object>> _builtActivators = new();
     private readonly IScope _rootScope;
+    private IActivationBuilder _builder;
+
+    public Container(IEnumerable<ServiceDescriptorBase> descriptors, IActivationBuilder builder)
+    {
+        _descriptors = descriptors.ToImmutableDictionary(x => x.ServiceType);
+        _rootScope = new Scope(this);
+        _builder = builder;
+    }
 
     private ServiceDescriptorBase? FindDescriptor(Type service)
     {
         _descriptors.TryGetValue(service, out var result);
         return result;
     }
-
-    public Container(IEnumerable<ServiceDescriptorBase> descriptors)
-    {
-        _descriptors = descriptors.ToImmutableDictionary(x => x.ServiceType);
-        _rootScope = new Scope(this);
-    }
+   
     public IScope CreateScope()
     {
         return new Scope(this);
@@ -96,22 +100,8 @@ public class Container : IContainer
         if (descriptor is FactoryBasedServiceDescriptor fb)
             return fb.Factory;
 
-        var tb = (TypeBasedServiceDescriptor)descriptor;
+        return _builder.BuildActivation(descriptor);
 
-        var ctor = tb.ImplementationType.GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
-        var args = ctor.GetParameters();
-
-        return scope =>
-        {
-            var parameters = new object?[args.Length];
-
-            for (int i = 0; i < args.Length; i++)
-            {
-                parameters[i] = CreateInstance(args[i].ParameterType, scope);
-            }
-
-            return ctor.Invoke(parameters);
-        };
     }
 
     private object CreateInstance(Type service, IScope scope)

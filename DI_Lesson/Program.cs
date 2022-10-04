@@ -1,29 +1,33 @@
-﻿using DI_Lesson.Extensions;
+﻿using BenchmarkDotNet.Running;
+using DI_Lesson;
+using DI_Lesson.Extensions;
 using DI_Lesson.Model;
 using DI_Lesson.Model.Builders;
 using DI_Lesson.Model.Interfaces;
 
-IContainerBuilder builder = new ContainerBuilder(new LambdaBasedActivationbuilder());
-IContainer container = builder
-	.RegisterScoped<IService, Service>()
-	.RegisterScoped<Controller, Controller>()
-	.Build();
+//IContainerBuilder builder = new ContainerBuilder(new LambdaBasedActivationbuilder());
+//IContainer container = builder
+//	.RegisterScoped<IService, Service>()
+//	.RegisterScoped<Controller, Controller>()
+//	.Build();
 
 
-IScope scope = container.CreateScope();
-var controller1 = scope.Resolve(typeof(Controller));
-var controller2 = scope.Resolve(typeof(Controller));
+//IScope scope = container.CreateScope();
+//var controller1 = scope.Resolve(typeof(Controller));
+//var controller2 = scope.Resolve(typeof(Controller));
 
-if (controller1 != controller2)
-{
-	throw new InvalidOperationException();
-}
+//if (controller1 != controller2)
+//{
+//	throw new InvalidOperationException();
+//}
+
+BenchmarkRunner.Run<ContainerBenchmark>();
 
 Console.ReadKey();
 
 
 
-class Controller
+public class Controller
 {
 	private readonly IService _service;
 
@@ -37,8 +41,8 @@ class Controller
 	}
 }
 
-interface IService { }
-class Service : IService { }
+public interface IService { }
+public class Service : IService { }
 
-interface IHelper { }
-class Helper : IHelper { }
+public interface IHelper { }
+public class Helper : IHelper { }

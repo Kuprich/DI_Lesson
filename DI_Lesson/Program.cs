@@ -1,8 +1,9 @@
 ﻿using DI_Lesson.Extensions;
 using DI_Lesson.Model;
+using DI_Lesson.Model.Builders;
 using DI_Lesson.Model.Interfaces;
 
-IContainerBuilder builder = new ContainerBuilder();
+IContainerBuilder builder = new ContainerBuilder(new LambdaBasedActivationbuilder());
 IContainer container = builder
 	.RegisterScoped<IService, Service>()
 	.RegisterScoped<Controller, Controller>()

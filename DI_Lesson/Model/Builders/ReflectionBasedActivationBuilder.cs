@@ -6,13 +6,12 @@ namespace DI_Lesson.Model.Builders;
 
 public class ReflectionBasedActivationBuilder : IActivationBuilder
 {
-    public Func<IScope, object> BuildActivation(ServiceDescriptorBase descriptor)
+    public Func<IScope, object> BuildActivationInternal(
+        TypeBasedServiceDescriptor tb,
+        ConstructorInfo ctor,
+        ParameterInfo[] args,
+        ServiceDescriptorBase descriptor)
     {
-        var tb = (TypeBasedServiceDescriptor)descriptor;
-
-        var ctor = tb.ImplementationType.GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
-        var args = ctor.GetParameters();
-
         return scope =>
         {
             var parameters = new object?[args.Length];
@@ -25,4 +24,5 @@ public class ReflectionBasedActivationBuilder : IActivationBuilder
             return ctor.Invoke(parameters);
         };
     }
+
 }
